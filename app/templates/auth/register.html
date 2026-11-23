@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Create account · Academic Insight{% endblock %}
+{% block content %}
+<section class="auth-wrap">
+  <div class="auth-card">
+    <div class="eyebrow">GET STARTED</div>
+    <h1>Create your account</h1>
+    <p class="muted">After creating your account, your first sign-in will show a password to save.</p>
+    {% if current_user.is_authenticated %}
+      <p class="message warning" role="status">After creating this account, you’ll be signed out and can sign in with the new account.</p>
+    {% endif %}
+    <form action="{{ url_for('auth.register') }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Full name<input name="name" required maxlength="120" autocomplete="name"></label>
+      <label>Student ID / USN<input name="student_id" required maxlength="40"></label>
+      <label>College name<input name="college_name" required maxlength="150" autocomplete="organization"></label>
+      <label>Course<input name="course" placeholder="e.g. BCA" required maxlength="100"></label>
+      <label>Current semester<input name="semester" type="number" min="1" max="20" value="1" required></label>
+      <button class="button primary full" type="submit">Create account</button>
+    </form>
+    <p class="auth-foot">Already registered? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+  </div>
+</section>
+{% endblock %}

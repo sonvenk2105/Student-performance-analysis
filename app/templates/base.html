@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}Student Performance{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% if request.endpoint in ('auth.login', 'auth.register', 'auth.student_password', 'auth.forgot_student_password') %}auth-pastel-page{% if request.endpoint == 'auth.login' %} auth-login-experience{% endif %}{% elif current_user.is_authenticated and current_user.role == 'student' %}student-workspace{% endif %}">
+  {% if current_user.is_authenticated and current_user.role == 'student' %}
+    <header class="topbar student-topbar">
+      <div class="student-topbar-start">
+        <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+        <form class="workspace-search" action="{{ url_for('student.history') }}" method="get" role="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m15.5 15.5 4.2 4.2"></path></svg>
+          <input type="search" name="q" value="{{ request.args.get('q', '') }}" placeholder="Search assessments..." aria-label="Search assessments">
+        </form>
+      </div>
+      <div class="student-topbar-end">
+        <a class="activity-link" href="{{ url_for('student.history') }}" aria-label="See recent assessments" title="Recent assessments">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.5a7 7 0 0 1 14 0c0 8 3 8 3 10H2c0-2 3-2 3-10Z"></path><path d="M9.5 21h5"></path></svg>
+        </a>
+        <a class="workspace-profile" href="{{ url_for('student.dashboard') if request.endpoint == 'student.profile' else url_for('student.profile') }}" aria-label="{{ 'Return to dashboard' if request.endpoint == 'student.profile' else 'Open student profile' }}" title="{{ 'Return to dashboard' if request.endpoint == 'student.profile' else 'Student profile' }}">
+          <span class="profile-copy"><strong>{{ current_user.name.split(' ')[0] }}</strong><small>STUDENT</small></span>
+          <span class="profile-avatar" aria-hidden="true">{{ current_user.name[:1]|upper }}</span>
+          <span class="profile-chevron" aria-hidden="true">⌄</span>
+        </a>
+        <button class="activity-link account-settings-toggle" id="account-menu-toggle" type="button" aria-haspopup="dialog" aria-controls="account-dialog" aria-label="Open account settings" title="Account settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-1.8l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.5-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.5.9l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.7Z"></path></svg>
+        </button>
+      </div>
+    </header>
+  {% else %}
+    <header class="topbar">
+      <a class="brand" href="{{ url_for('auth.index') }}"><span class="brand-mark">A</span> Academic Insight</a>
+      {% if current_user.is_authenticated %}
+        <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+        <div class="user-chip">{{ current_user.name }} <span>{{ current_user.role }}</span></div>
+      {% endif %}
+    </header>
+  {% endif %}
+
+  {% if current_user.is_authenticated and current_user.role == 'student' %}
+    <dialog class="account-dialog" id="account-dialog" aria-labelledby="account-dialog-title">
+      <div class="account-dialog-content">
+        <div class="account-dialog-head">
+          <div><div class="eyebrow">STUDENT ACCOUNT</div><h2 id="account-dialog-title">Your account</h2></div>
+          <button class="account-dialog-close" type="button" data-close-account aria-label="Close account settings">×</button>
+        </div>
+        <dl class="account-info-grid">
+          <div><dt>Student name</dt><dd>{{ current_user.name }}</dd></div>
+          <div><dt>Student ID / USN</dt><dd>{{ current_user.student_id }}</dd></div>
+        </dl>
+        <section class="account-password-note">
+          <span class="account-security-icon" aria-hidden="true">✓</span>
+          <div><strong>Secure password protected</strong><p>Your current password is stored as a one-way hash and cannot be displayed.</p></div>
+        </section>
+        <form class="account-form" action="{{ url_for('student.change_password') }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <h3>Change secure password</h3>
+          <label>Current password<input type="password" name="current_password" required autocomplete="current-password"></label>
+          <div class="account-form-grid">
+            <label>New password<input type="password" name="new_password" minlength="14" maxlength="256" required autocomplete="new-password"></label>
+            <label>Confirm new password<input type="password" name="confirm_password" minlength="14" maxlength="256" required autocomplete="new-password"></label>
+          </div>
+          <p class="help-text">Use at least 14 characters. Your new password is saved securely and will not be shown again.</p>
+          <button class="button secondary" type="submit">Update password</button>
+        </form>
+        <form class="account-delete-form" action="{{ url_for('student.delete_account') }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <h3>Delete account</h3>
+          <p>This permanently deletes your account, assessments, and saved marks.</p>
+          <label>Enter your secure password<input type="password" name="current_password" required autocomplete="current-password"></label>
+          <label class="account-delete-confirm"><input type="checkbox" name="confirm_delete" value="yes" required> I understand this permanently deletes my account and results.</label>
+          <button class="button account-delete-button" type="submit">Delete account</button>
+        </form>
+      </div>
+    </dialog>
+  {% endif %}
+
+  {% if current_user.is_authenticated %}
+    <aside class="sidebar{% if current_user.role == 'student' %} student-sidebar{% endif %}">
+      {% if current_user.role == 'admin' %}
+        <div class="side-label">WORKSPACE</div>
+        <a href="{{ url_for('admin.dashboard') }}">Overview</a>
+        <a href="{{ url_for('admin.students') }}">Students</a>
+        <a href="{{ url_for('admin.subjects') }}">Academic subjects</a>
+        <a href="{{ url_for('admin.grading') }}">Grading rules</a>
+      {% else %}
+        <a class="student-brand" href="{{ url_for('student.dashboard') }}">
+          <span class="student-brand-mark">A</span>
+          <span>Academic Insight</span>
+        </a>
+        <div class="side-label">WORKSPACE</div>
+        <nav class="workspace-nav" aria-label="Student workspace">
+          <a class="workspace-link{% if request.endpoint == 'student.dashboard' %} active{% endif %}" href="{{ url_for('student.dashboard') }}"{% if request.endpoint == 'student.dashboard' %} aria-current="page"{% endif %}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1V10Z"></path></svg><span>Dashboard</span>
+          </a>
+          <a class="workspace-link{% if request.endpoint == 'student.analyze' %} active{% endif %}" href="{{ url_for('student.analyze') }}"{% if request.endpoint == 'student.analyze' %} aria-current="page"{% endif %}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V11M10 19V5M16 19v-8M22 19V3"></path></svg><span>Analyze performance</span>
+          </a>
+          <a class="workspace-link{% if request.endpoint == 'student.upload' %} active{% endif %}" href="{{ url_for('student.upload') }}"{% if request.endpoint == 'student.upload' %} aria-current="page"{% endif %}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5"></path><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path></svg><span>Upload marksheet</span>
+          </a>
+          <a class="workspace-link{% if request.endpoint in ('student.history', 'student.result', 'student.report') %} active{% endif %}" href="{{ url_for('student.history') }}"{% if request.endpoint in ('student.history', 'student.result', 'student.report') %} aria-current="page"{% endif %}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg><span>Performance history</span>
+          </a>
+          <a class="workspace-link{% if request.endpoint == 'student.compare' %} active{% endif %}" href="{{ url_for('student.compare') }}"{% if request.endpoint == 'student.compare' %} aria-current="page"{% endif %}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m6 10V5m6 14v-7m6 7V3"></path></svg><span>Semester comparison</span>
+          </a>
+          <a class="workspace-link{% if request.endpoint == 'student.prediction' %} active{% endif %}" href="{{ url_for('student.prediction') }}"{% if request.endpoint == 'student.prediction' %} aria-current="page"{% endif %}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 6-6 4 4 8-9"></path><path d="M15 6h6v6"></path></svg><span>Future estimate</span>
+          </a>
+          <a class="workspace-link{% if request.endpoint == 'student.profile' %} active{% endif %}" href="{{ url_for('student.dashboard') if request.endpoint == 'student.profile' else url_for('student.profile') }}"{% if request.endpoint == 'student.profile' %} aria-current="page" title="Return to dashboard"{% endif %}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span>Student profile</span>
+          </a>
+        </nav>
+      {% endif %}
+      <form class="sidebar-logout" action="{{ url_for('auth.logout') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="side-logout" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"></path><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"></path></svg><span>Sign out</span></button>
+      </form>
+    </aside>
+  {% endif %}
+
+  <main class="main{% if current_user.is_authenticated %} with-sidebar{% endif %}{% if current_user.is_authenticated and current_user.role == 'student' %} student-main{% endif %}{% if request.endpoint == 'auth.login' %} login-main{% endif %}">
+    <div class="messages">
+      {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="message {{ category }}" role="status">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% block content %}{% endblock %}
+  </main>
+  <script src="{{ url_for('static', filename='js/app.js', v='account-history-3') }}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

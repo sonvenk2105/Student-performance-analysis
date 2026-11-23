@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Administrator sign in · Academic Insight{% endblock %}
+{% block content %}
+<section class="auth-wrap">
+  <div class="auth-card">
+    <div class="eyebrow">STUDENT PERFORMANCE ANALYSIS</div>
+    <h1>Administrator sign in</h1>
+    <p class="muted">Use your administrator account to manage academic records.</p>
+    <form method="post" action="{{ url_for('auth.admin_login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Email address<input name="email" type="email" autocomplete="username" required maxlength="254"></label>
+      <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+      <label class="check"><input type="checkbox" name="remember" value="yes"> Keep me signed in</label>
+      <button class="button primary full" type="submit">Sign in</button>
+    </form>
+    <p class="auth-foot"><a href="{{ url_for('auth.login') }}">Student sign in</a></p>
+  </div>
+</section>
+{% endblock %}

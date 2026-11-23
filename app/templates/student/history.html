@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Performance history · Academic Insight{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">YOUR RECORDS</div><h1>Performance history</h1><p class="muted">Review your saved assessments, correct a mistake, or remove a record.</p></div>
+  <a class="button primary" href="{{ url_for('student.analyze') }}">New assessment</a>
+</div>
+<section class="panel">
+  <div class="table-wrap"><table><thead><tr><th>Assessment</th><th>Course / semester</th><th>Date</th><th>Marks</th><th>Percent</th><th>Grade</th><th>Result</th><th>Actions</th></tr></thead><tbody>
+    {% for item in items.items %}
+      <tr><td><a href="{{ url_for('student.result', assessment_id=item.id) }}">{{ item.label }}</a></td><td>{{ item.course }} · {{ item.semester }}</td><td>{{ item.assessed_at.strftime('%d %b %Y') }}</td><td>{{ item.total_obtained|round(1) }} / {{ item.total_maximum|round(1) }}</td><td>{{ '%.2f'|format(item.percentage) }}%</td><td>{{ item.grade }}</td><td>{{ 'Pass' if item.passed else 'Needs improvement' }}</td><td><div class="history-actions"><a class="button secondary history-modify" href="{{ url_for('student.edit_assessment', assessment_id=item.id) }}">Modify</a><form method="post" action="{{ url_for('student.delete_assessment', assessment_id=item.id) }}" onsubmit="return confirm('Delete this assessment and its saved marks permanently?');"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button history-delete" type="submit">Delete assessment</button></form></div></td></tr>
+    {% else %}
+      <tr><td colspan="8">{% if term %}No assessments matched “{{ term }}”.{% else %}No saved assessments yet.{% endif %}</td></tr>
+    {% endfor %}
+  </tbody></table></div>
+  <div class="pagination">
+    {% if items.has_prev %}<a href="{{ url_for('student.history', page=items.prev_num, q=term) }}">← Previous</a>{% endif %}
+    <span>Page {{ items.page }} of {{ items.pages or 1 }}</span>
+    {% if items.has_next %}<a href="{{ url_for('student.history', page=items.next_num, q=term) }}">Next →</a>{% endif %}
+  </div>
+</section>
+{% endblock %}

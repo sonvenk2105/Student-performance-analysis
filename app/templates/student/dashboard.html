@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard · Academic Insight{% endblock %}
+{% block head %}{% if latest %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" defer></script>{% endif %}{% endblock %}
+{% block content %}
+<section class="student-dashboard">
+  <header class="student-page-head">
+    <div>
+      <div class="eyebrow">STUDENT WORKSPACE</div>
+      <h1>Hello, <span>{{ current_user.name.split(' ')[0] }}</span></h1>
+      <p class="student-meta"><span>{{ current_user.student_id }}</span><i></i><span>{{ current_user.course }}</span><i></i><span>Semester {{ current_user.semester }}</span></p>
+    </div>
+    <a class="button primary dashboard-analyze" href="{{ url_for('student.analyze') }}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V11M10 19V5M16 19v-8M22 19V3"></path></svg>
+      Analyze performance
+    </a>
+  </header>
+
+  <section class="dashboard-hero{% if latest %} has-latest{% endif %}" aria-labelledby="dashboard-hero-title">
+    <div class="hero-art"><img src="{{ url_for('static', filename='images/student-learning.svg') }}" alt="" aria-hidden="true"></div>
+    <div class="hero-copy">
+      {% if latest %}
+        <div class="hero-overline"><span></span> YOUR LATEST ANALYSIS</div>
+        <h2 id="dashboard-hero-title">{{ latest.label }}</h2>
+        <p>Your latest assessment is ready to review. See the subject breakdown and recommendations.</p>
+        <div class="hero-result-line">
+          <strong>{{ '%.2f'|format(latest.percentage) }}<small>%</small></strong>
+          <span class="hero-grade">Grade {{ latest.grade }}</span>
+          <span class="hero-pass">{{ 'Passed' if latest.passed else 'Review needed' }}</span>
+        </div>
+        <a class="button primary hero-action" href="{{ url_for('student.result', assessment_id=latest.id) }}">View latest results <span aria-hidden="true">→</span></a>
+      {% else %}
+        <div class="hero-sparkle" aria-hidden="true">✦</div>
+        <h2 id="dashboard-hero-title">Your analysis starts with your marks</h2>
+        <p>Enter marks from a real assessment to see your percentage, grade, subject results and recommendations. No sample results are shown.</p>
+        <a class="button primary hero-action" href="{{ url_for('student.analyze') }}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"></path><path d="M14 3v6h5M9 14h6M9 17h6"></path></svg>
+          Enter marks
+        </a>
+      {% endif %}
+    </div>
+  </section>
+
+  <nav class="dashboard-shortcuts" aria-label="More student tools">
+    <a class="shortcut-card shortcut-history" href="{{ url_for('student.history') }}">
+      <span class="shortcut-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg></span>
+      <span class="shortcut-copy"><strong>Performance history</strong><small>View your previous assessments and results.</small></span>
+      <span class="shortcut-arrow" aria-hidden="true">›</span>
+    </a>
+    <a class="shortcut-card shortcut-compare" href="{{ url_for('student.compare') }}">
+      <span class="shortcut-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m6 10V5m6 14v-7m6 7V3"></path></svg></span>
+      <span class="shortcut-copy"><strong>Semester comparison</strong><small>Compare your performance across semesters.</small></span>
+      <span class="shortcut-arrow" aria-hidden="true">›</span>
+    </a>
+    <a class="shortcut-card shortcut-prediction" href="{{ url_for('student.prediction') }}">
+      <span class="shortcut-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 6-6 4 4 8-9"></path><path d="M15 6h6v6"></path></svg></span>
+      <span class="shortcut-copy"><strong>Future estimate</strong><small>Get an estimate of your future performance.</small></span>
+      <span class="shortcut-arrow" aria-hidden="true">›</span>
+    </a>
+  </nav>
+
+  {% if latest %}
+    <section class="stats dashboard-stats" aria-label="Latest assessment summary">
+      <article class="stat-card featured"><span>Latest percentage</span><strong>{{ '%.2f'|format(latest.percentage) }}%</strong><small>{{ latest.label }} · {{ latest.assessed_at.strftime('%d %b %Y') }}</small></article>
+      <article class="stat-card"><span>Marks obtained</span><strong>{{ latest.total_obtained|round(1) }} <small>/ {{ latest.total_maximum|round(1) }}</small></strong><small>{{ latest.marks|length }} subjects</small></article>
+      <article class="stat-card"><span>Grade</span><strong>{{ latest.grade }}</strong><small>{{ 'All subjects passed' if latest.passed else 'Review subject results' }}</small></article>
+    </section>
+    <section class="panel chart-panel">
+      <h2>Recent performance trend</h2>
+      <canvas id="trend-chart" aria-label="Saved assessment percentage trend" role="img"></canvas>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><h2>Recent assessments</h2><p class="muted">Your saved results, newest first</p></div><a href="{{ url_for('student.history') }}">View history →</a></div>
+      <div class="table-wrap"><table><thead><tr><th>Assessment</th><th>Semester</th><th>Date</th><th>Percentage</th><th>Grade</th><th></th></tr></thead><tbody>
+        {% for item in recent %}<tr><td>{{ item.label }}</td><td>{{ item.semester }}</td><td>{{ item.assessed_at.strftime('%d %b %Y') }}</td><td>{{ '%.2f'|format(item.percentage) }}%</td><td>{{ item.grade }}</td><td><a href="{{ url_for('student.result', assessment_id=item.id) }}">Open</a></td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}{% if trend %}<script>window.trendChartData={{ {'labels':trend|map(attribute='label')|list,'values':trend|map(attribute='percentage')|list}|tojson }};</script><script src="{{ url_for('static',filename='js/charts.js') }}" defer></script>{% endif %}{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Analyze performance · Academic Insight{% endblock %}
+{% block content %}
+<div class="analysis-page">
+  <header class="analysis-banner">
+    <div class="analysis-banner-copy">
+      <div class="analysis-kicker"><span class="analysis-kicker-icon" aria-hidden="true">✦</span> ACADEMIC ANALYSIS <span class="analysis-step">MARKS ENTRY</span></div>
+      <h1>{{ 'Modify assessment marks' if editing_item else 'Enter assessment marks' }}</h1>
+      <p>{{ 'Correct the entries below. Your existing result will be recalculated when you save.' if editing_item else 'Your marks are validated and saved to your account. Required marks are never assumed.' }}</p>
+      <div class="analysis-promise"><span>01</span> Enter marks <i></i><span>02</span> Review results <i></i><span>03</span> Plan your next step</div>
+    </div>
+    <div class="analysis-banner-art" aria-hidden="true">
+      <div class="analysis-art-orb"></div>
+      <div class="analysis-art-card">
+        <div class="analysis-art-card-head"><span>ASSESSMENT OVERVIEW</span><b>✦</b></div>
+        <div class="analysis-art-bars"><i></i><i></i><i></i><i></i><i></i></div>
+        <svg viewBox="0 0 250 90" preserveAspectRatio="none"><path d="M4 69 47 54l41 13 43-34 39 19 39-37 37 8"/><circle cx="209" cy="15" r="4"/></svg>
+        <div class="analysis-art-labels"><span>MARKS</span><span>SUBJECTS</span><span>INSIGHTS</span></div>
+      </div>
+      <div class="analysis-art-badge"><span>✓</span> YOUR DATA, YOUR RESULTS</div>
+      <span class="analysis-art-star">✧</span>
+    </div>
+  </header>
+
+  <form method="post" action="{{ url_for('student.edit_assessment', assessment_id=editing_item.id) if editing_item else url_for('student.analyze') }}" id="marks-form" class="panel form-panel analysis-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if not editing_item %}<input type="hidden" name="request_key" value="{{ request_key }}">{% endif %}
+
+    <section class="analysis-section" aria-labelledby="assessment-details-title">
+      <div class="analysis-section-heading">
+        <span class="analysis-section-number">01</span>
+        <div><h2 id="assessment-details-title">Assessment details</h2><p>Give this assessment a clear label and semester.</p></div>
+      </div>
+      <div class="form-grid analysis-details-grid">
+        <label>Assessment label<input name="label" value="{{ request.form.get('label', editing_item.label if editing_item else ('Uploaded marksheet' if prefill_rows else 'Assessment')) }}" maxlength="120" required></label>
+        <label>Semester<input name="semester" type="number" min="1" max="20" value="{{ request.form.get('semester', editing_item.semester if editing_item else current_user.semester) }}" required></label>
+        <label>Academic year <small>Optional</small><input name="academic_year" value="{{ request.form.get('academic_year', editing_item.academic_year or '' if editing_item else '') }}" maxlength="20" placeholder="e.g. 2026–27"></label>
+      </div>
+    </section>
+
+    <section class="analysis-section subject-section" aria-labelledby="subject-marks-title">
+      <div class="analysis-section-heading subject-section-heading">
+        <span class="analysis-section-number">02</span>
+        <div><h2 id="subject-marks-title">Subject marks</h2><p>Add every subject from this assessment.</p></div>
+        <span class="subject-entry-hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"></path></svg> One row per subject</span>
+      </div>
+      <datalist id="catalog-subjects">{% for subject in catalog %}<option value="{{ subject.name }}" data-maximum="{{ subject.maximum }}" data-passing="{{ subject.passing }}">{{ subject.course }} · Semester {{ subject.semester }}</option>{% endfor %}</datalist>
+      <div id="subject-rows" class="subject-rows">
+        {% for row in prefill_rows or [{}] %}
+        <div class="subject-row">
+          <label class="subject-name">Subject<input name="subject[]" value="{{ row.get('subject', '') }}" required maxlength="120" placeholder="Choose or type a subject" list="catalog-subjects"></label>
+          <label>Obtained<input name="obtained[]" value="{{ row.get('obtained', '') }}" type="number" min="0" max="100" step="any" required placeholder="e.g. 78"></label>
+          <label>Maximum<input name="maximum[]" value="{{ row.get('maximum', '') }}" type="number" min="0.01" max="100" step="any" required placeholder="Up to 100"></label>
+          <label>Pass mark<input name="passing[]" value="{{ row.get('passing') if row.get('passing') is not none else '' }}" type="number" min="0" max="40" step="any" placeholder="Up to 40"></label>
+          <button type="button" class="remove-row" aria-label="Remove subject" title="Remove subject">×</button>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="help-text subject-help"><span aria-hidden="true">ⓘ</span> Maximum marks cannot exceed 100 and a custom pass mark cannot exceed 40. Entered values stay as typed; invalid values are flagged and must be corrected before saving. Leave pass mark blank to use the college’s default rule.</p>
+    </section>
+
+    <div class="analysis-confirmation">
+      <span class="confirmation-icon" aria-hidden="true">✓</span>
+      <label class="check confirm-check"><input type="checkbox" name="confirm_review" value="yes" required> {{ 'I reviewed these corrections and confirm they are accurate.' if editing_item else 'I have reviewed these marks and confirm they match my assessment.' }}</label>
+    </div>
+    <div class="form-actions analysis-actions">
+      <button type="button" id="add-row" class="button secondary add-subject-button"><span aria-hidden="true">＋</span> Add another subject</button>
+      <button type="submit" data-wait-text="{{ 'Saving…' if editing_item else 'Analyzing…' }}" class="button primary analyze-submit">{{ 'Save changes' if editing_item else 'Analyze performance' }} <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"></path></svg></button>
+    </div>
+  </form>
+</div>
+{% endblock %}

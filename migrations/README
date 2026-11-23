@@ -1,0 +1,2 @@
+Flask-Migrate/Alembic migration environment. Initial schema revision is in versions/.
+Apply with `flask db upgrade`. Review and commit every future migration.

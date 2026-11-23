@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Student sign in · Academic Insight{% endblock %}
+{% block content %}
+<section class="auth-wrap login-page">
+  <div class="login-shell">
+    <aside class="login-showcase" aria-label="Academic Insight student performance analytics">
+      <div class="showcase-orb showcase-orb-one" aria-hidden="true"></div>
+      <div class="showcase-orb showcase-orb-two" aria-hidden="true"></div>
+      <div class="login-brand-block">
+        <span class="login-brand-mark" aria-hidden="true">A</span>
+        <span class="login-brand-copy"><strong>Academic Insight</strong><small>STUDENT PERFORMANCE ANALYTICS</small></span>
+      </div>
+
+      <div class="showcase-copy">
+        <div class="showcase-kicker">YOUR LEARNING, IN FOCUS</div>
+        <h2>See how far<br><span>you can go.</span></h2>
+        <p>One clear space to understand your results, celebrate progress, and plan your next step.</p>
+        <div class="showcase-pill-row" aria-hidden="true"><span>ASSESS</span><i></i><span>UNDERSTAND</span><i></i><span>GROW</span></div>
+      </div>
+
+      <div class="login-art-stage" aria-hidden="true">
+        <span class="login-art-star login-art-star-one">✦</span>
+        <span class="login-art-star login-art-star-two">✧</span>
+        <img class="login-student-art" src="{{ url_for('static', filename='images/student-learning.svg') }}" alt="">
+        <div class="login-progress-card">
+          <div class="progress-card-head"><strong>YOUR PROGRESS</strong><span><i></i> IN VIEW</span></div>
+          <div class="login-chart">
+            <div class="login-chart-guides"><i></i><i></i><i></i></div>
+            <svg viewBox="0 0 640 150" preserveAspectRatio="none">
+              <defs><linearGradient id="login-progress-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a98aff" stop-opacity=".48"/><stop offset="1" stop-color="#a98aff" stop-opacity=".02"/></linearGradient></defs>
+              <path class="login-chart-area" d="M6 122 C48 112 62 91 105 96 S168 103 205 80 S269 82 305 68 S367 71 406 45 S470 54 506 34 S567 45 634 12 L634 150H6Z"></path>
+              <path class="login-chart-line" d="M6 122 C48 112 62 91 105 96 S168 103 205 80 S269 82 305 68 S367 71 406 45 S470 54 506 34 S567 45 634 12"></path>
+              <circle cx="6" cy="122" r="4"></circle><circle cx="105" cy="96" r="4"></circle><circle cx="205" cy="80" r="4"></circle><circle cx="305" cy="68" r="4"></circle><circle cx="406" cy="45" r="4"></circle><circle cx="506" cy="34" r="4"></circle><circle cx="634" cy="12" r="5"></circle>
+            </svg>
+          </div>
+          <div class="login-chart-months"><span>JAN</span><span>FEB</span><span>MAR</span><span>APR</span><span>MAY</span><span>JUL</span></div>
+        </div>
+        <div class="login-progress-note"><span>↗</span><strong>Every step<br>builds tomorrow</strong></div>
+      </div>
+
+      <div class="showcase-foot"><span class="foot-mark">♙</span><span>A thoughtful way to track your academic journey.</span></div>
+    </aside>
+
+    <div class="login-right">
+      <div class="auth-card login-card">
+        <div class="login-heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-8Z"></path><path d="M9 20v-6h6v6"></path></svg></div>
+        <div class="eyebrow">STUDENT PORTAL</div>
+        <h1>Welcome back.</h1>
+        <p class="muted login-subtitle">Sign in to continue to your academic space.</p>
+        <div class="login-access-note"><span aria-hidden="true">✦</span> Your personal progress, all in one place.</div>
+
+        <form class="login-form" method="post" action="{{ url_for('auth.login') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label class="login-field">Student name<span class="login-input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg><input name="name" type="text" autocomplete="name" placeholder="Enter your full name" required maxlength="120"></span></label>
+          <label class="login-field">Student ID / USN<span class="login-input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 10h8M8 14h5"></path></svg><input name="student_id" type="text" autocomplete="username" placeholder="e.g. U19YA2450106" required maxlength="40"></span></label>
+          <label class="check login-remember"><input type="checkbox" name="remember" value="yes"><span>Keep me signed in</span></label>
+          <button class="button primary full login-submit" type="submit"><span>Sign in to your dashboard</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"></path></svg></button>
+        </form>
+
+        <div class="login-divider"><span>OR</span></div>
+        <a class="create-account-link" href="{{ url_for('auth.register') }}">
+          <span class="create-account-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0M19 8v7m-3.5-3.5h7"></path></svg></span>
+          <span class="create-account-copy"><strong>Create your student account</strong><small>New students can quickly create an account.</small></span>
+          <span class="create-account-arrow" aria-hidden="true">›</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

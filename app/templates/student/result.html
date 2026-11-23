@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Assessment results · Academic Insight{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" defer></script>{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">ASSESSMENT RESULT</div><h1>{{ item.label }}</h1><p class="muted">{{ item.course }} · Semester {{ item.semester }} · {{ item.assessed_at.strftime('%d %b %Y') }}</p></div>
+  <a class="button secondary" href="{{ url_for('student.report', assessment_id=item.id) }}">Download PDF</a>
+</div>
+<section class="stats">
+  <article class="stat-card featured"><span>Overall percentage</span><strong>{{ '%.2f'|format(item.percentage) }}%</strong><small>Weighted by subject maximum marks</small></article>
+  <article class="stat-card"><span>Marks</span><strong>{{ item.total_obtained|round(1) }} <small>/ {{ item.total_maximum|round(1) }}</small></strong></article>
+  <article class="stat-card"><span>Grade · result</span><strong>{{ item.grade }}</strong><small>{{ 'Pass' if item.passed else 'Needs improvement' }} · rule v{{ item.rule_version }}</small></article>
+</section>
+<section class="panel">
+  <h2>Subject analysis</h2>
+  <p class="muted">The relative label compares each subject percentage with the mean for this assessment.</p>
+  <div class="table-wrap"><table><thead><tr><th>Subject</th><th>Marks</th><th>Percent</th><th>Grade</th><th>Status</th><th>Relative result</th><th>Recommendation</th></tr></thead><tbody>
+    {% for m in item.marks %}<tr><td>{{ m.subject }}</td><td>{{ m.obtained|round(1) }} / {{ m.maximum|round(1) }}</td><td>{{ '%.1f'|format(m.percentage) }}%</td><td>{{ m.grade }}</td><td>{{ 'Pass' if m.passed else 'Fail' }}</td><td>{{ m.relative }}</td><td>{{ m.recommendation }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="panel chart-panel result-chart-panel">
+  <div class="result-chart-heading"><span class="result-chart-icon">01</span><div><h2>Subject percentages</h2><p>Compare the percentage earned in each subject.</p></div></div>
+  <canvas id="subject-chart" aria-label="Bar chart of subject percentages" role="img"></canvas>
+  <ul class="sr-only">{% for m in item.marks %}<li>{{ m.subject }}: {{ '%.1f'|format(m.percentage) }} percent</li>{% endfor %}</ul>
+</section>
+<section class="panel chart-panel result-chart-panel">
+  <div class="result-chart-heading"><span class="result-chart-icon">02</span><div><h2>Marks obtained versus maximum marks</h2><p>See your obtained marks alongside the maximum for each subject.</p></div></div>
+  <canvas id="marks-chart" aria-label="Marks obtained and maximum marks by subject" role="img"></canvas>
+</section>
+<section class="panel">
+  <h2>Performance notes</h2>
+  {% if suggestions %}<ul>{% for text in suggestions %}<li>{{ text }}</li>{% endfor %}</ul>{% else %}<p>Maintain your current study routine and review these subjects regularly.</p>{% endif %}
+  <p class="help-text">Recommendations are based on this assessment; they are not guaranteed outcomes. No trained prediction is available yet.</p>
+</section>
+{% endblock %}
+{% block scripts %}<script>window.subjectChartData={{ {'labels':item.marks|map(attribute='subject')|list,'values':item.marks|map(attribute='percentage')|list,'obtained':item.marks|map(attribute='obtained')|list,'maximum':item.marks|map(attribute='maximum')|list}|tojson }};</script><script src="{{ url_for('static',filename='js/charts.js') }}" defer></script>{% endblock %}
