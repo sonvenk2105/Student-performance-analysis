@@ -1,12 +1,12 @@
 """Store college names and first-sign-in student password state.
 
-Revision ID: 0006_college_and_student_password
+Revision ID: 0006_college_pwd
 Revises: 0005_optional_student_email
 """
 from alembic import op
 import sqlalchemy as sa
 
-revision = "0006_college_and_student_password"
+revision = "0006_college_pwd"
 down_revision = "0005_optional_student_email"
 branch_labels = None
 depends_on = None
