@@ -65,13 +65,11 @@ Tests cover weighted calculations, grade boundaries/configuration, validation, a
 
 ## Render deployment
 
-1. Push the repository to GitHub. Create a managed PostgreSQL database on Render and a web service connected to the repository.
-2. Set `SECRET_KEY`, `DATABASE_URL` (Render's internal database URL), and `COOKIE_SECURE=1` in service environment variables. Do not put credentials in source control.
-3. Build command: `pip install -r requirements.txt`.
-4. Start command: `flask --app wsgi:app db upgrade && gunicorn wsgi:app`.
-5. Set health check path `/health`, deploy, then verify `/health`, student registration, login, assessment save, history, and report download.
-6. Provision the administrator through the Render shell using environment-injected values and `flask create-admin`; do not add a public admin signup route.
-7. Keep a backup and retention plan for PostgreSQL. Run upload cleanup on a scheduled job or operational schedule. Review Render logs for errors without logging marks or credentials.
+The root `render.yaml` defines a free demo Blueprint with a web service and PostgreSQL database in Singapore. Push the repository to GitHub, then in Render choose **New > Blueprint** and connect this repository's `main` branch. Review the resources and deploy the Blueprint. It generates `SECRET_KEY`, sets `COOKIE_SECURE=1`, applies migrations and initial grading rules, and provisions the first administrator using the `ADMIN_EMAIL` and `ADMIN_PASSWORD` values Render prompts for. Use a unique admin password of at least 14 characters. After the first deployment succeeds, remove both admin variables from the web service's Environment settings; the administrator account remains in the database.
+
+This free configuration is for a short-lived demo with no real student records. Render free web services spin down after inactivity and have ephemeral filesystems. Free PostgreSQL databases expire after 30 days, have no backups, and are eventually deleted if not upgraded. Use a paid database with backups and a documented retention plan before storing real student records. See Render's [free service limits](https://render.com/docs/free).
+
+The web service checks `/health`; its start command applies database migrations and starts Gunicorn on Render's `PORT`. Review service logs without exposing marks or credentials.
 
 ## Power BI
 
